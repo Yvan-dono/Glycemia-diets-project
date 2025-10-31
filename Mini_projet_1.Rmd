@@ -1,0 +1,174 @@
+---
+title: "Glycémie de patients diabétiques soumis à 2 régimes alimentaires différents"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+date: "2025-10-09"
+---
+
+```{r, echo=FALSE}
+diabete <- read.table("diabete.txt")
+```
+
+Partie 1 : Description des données
+
+- Quelle est la glycémie moyenne de chaque groupe ?
+
+```{r}
+summary(diabete)
+```
+
+La glycémie moyenne du groupe1 est égale à 1.0525 (1.05 g/L). 
+La glycémie moyenne du groupe2 est égale à 1.098 (1.10 g/L).
+
+- Quel est l’écart-type de la distribution de la glycémie pour le régime A et pour le régime B ?
+
+```{r}
+# Calcul de l'ecart-type 
+round(sd(diabete$groupe1),2) # Régime A 
+round(sd(diabete$groupe2),2) # Régime B
+```
+
+L'écart-type de la distribution de la glycémie pour le groupe 1 est égale à 0.08. L'écart-type de la distribution de la glycémie pour le groupe 2 est égale à 0.05.
+
+- Représenter la distribution de la glycémie de chaque régime sous la forme d’un graphique permettant de visualiser la médiane et les quartiles.
+
+```{r, echo=FALSE}
+# Création de mon graphique
+boxplot(diabete, col = c("yellow","orange"), range = 0, main = "Distribution de la glycémie")
+
+# Ajout de la légende 
+legend("bottomright", 
+       legend = c("Q1-Q3 groupe1", "Q1-Q3 groupe2", "Médiane"), 
+       fill = c("yellow", "orange","black"), cex = 0.6)
+```
+
+Partie 2 : Analyses statistiques
+
+- Quelle est la différence moyenne de glycémie entre les deux régimes ?
+
+```{r}
+round(mean(diabete$groupe2)- mean(diabete$groupe1),2)
+```
+
+La différence moyenne de glycémie entre les deux régimes est égale à 0.05 g/L.
+
+-   Cette différence est-elle significative ?
+
+Pour savoir si cette différence est statistiquement significative, on va effectuer un test stastistique. Cependant, plusieurs critères sont à valider avant de pourvoir réaliser le test. Tout d'abord, nos deux groupes doivent contenir un assez grand nombre de sujets à comparer (>30) et leurs distributions doivent suivre une loi normale. On sait que les 2 groupes contiennent chacun 100 patients diabétiques. Un des critères est donc déja valide. Pour vérifier si nos deux groupes suivent une loi normale, on peut le vérifier avec un diagramme de normalité.
+
+```{r}
+# Affichage de mes graphiques côte à côte
+par(mfrow= c(1,2))
+# Diagramme groupe1
+qqnorm(diabete$groupe1, col = "yellow");qqline(diabete$groupe1)
+# Diagramme groupe2
+qqnorm(diabete$groupe2, col = "orange");qqline(diabete$groupe2)
+```
+
+On constate sur les diagrammes des 2 groupes que les points sont majoritairement proches de la ligne droite. Cela signifit que les données suivent une distribution normale. Le second critère est également validé. Il ne reste qu'un dernier critère à valider pour effectuer notre test. Il faut que les variances soient identiques dans les deux groupes. Pour cela, on va faire un test d'égalité des variances.
+
+```{r}
+var.test(diabete$groupe1, diabete$groupe2)
+```
+
+Interprétation du test : 
+
+H0 : les variances sont égales (hypothèse nulle) 
+
+H1 : les variances ne sont pas égales (hypothèse alternative) 
+
+On rejette H0 (p-value<0.05) et H1 est validé. Donc, les variances des deux distributions ne sont pas égales.
+
+Malgré que les variances des deux distributions ne soient pas égales, il est possible d'effectuer notre test statistique. Dans cette situation, on utilise un test de Welch pour comparer les moyennes.
+
+```{r}
+t.test(diabete$groupe1, diabete$groupe2, var.equal=FALSE)
+```
+
+Interprétation du test : 
+
+H0 : les moyennes sont égales (hypothèse nulle) 
+
+H1 : les moyennes ne sont pas égales (hypothèse alternative) 
+
+On rejette H0 (p-value<0.05) et H1 est validé. Donc, les moyennes des deux distributions ne sont pas égales.
+
+A partir du résultat du test statistique, on peut en conclure que la différence moyenne de glycémie entre les deux régimes est significative.
+
+Taille de l’échantillon :
+
+-   Echantillonner aléatoirement 10 patients de chaque groupe (groupe1b et groupe2b)
+
+```{r}
+groupe1b <- sample(diabete$groupe1, 10)
+groupe1b
+groupe2b <- sample(diabete$groupe2, 10)
+groupe2b
+```
+
+-   Répéter les questions des parties 1 et 2 pour ces sous-échantillons.
+
+Glycémie moyenne de chaque groupe :
+
+```{r, echo=TRUE, results='hide'}
+summary(groupe1b)
+summary(groupe2b)
+```
+
+La glycémie moyenne du groupe1b est égale à 1.064 (1.06 g/L). 
+
+La glycémie moyenne du groupe2b est égale à 1.128 (1.13 g/L).
+
+Ecart-type de la distribution de la glycémie pour le régime A et pour le régime B :
+
+```{r, echo=TRUE, results='hide'}
+# Calcul de l'ecart-type 
+round(sd(groupe1b),2) # Régime A 
+round(sd(groupe2b),2) # Régime B
+```
+
+L'écart-type de la distribution de la glycémie pour le groupe 1b est égale à 0.06 g/L. L'écart-type de la distribution de la glycémie pour le groupe 2b est égale à 0.05 g/L.
+
+Représentation graphique :
+
+```{r, echo=FALSE}
+# Création de mon graphique
+boxplot(groupe1b,groupe2b, col = c("yellow","orange"), range = 0, main = "Distribution de la glycémie")
+
+# Ajout de la légende 
+legend("bottomright", 
+       legend = c("Q1-Q3 groupe1b", "Q1-Q3 groupe2b", "Médiane"), 
+       fill = c("yellow", "orange","black"), cex = 0.6)
+```
+
+Différence moyenne de glycémie entre les deux régimes pour les sous-groupes :
+
+```{r, echo=TRUE, results='hide'}
+round(mean(groupe2b)- mean(groupe1b),2)
+```
+
+La différence moyenne de glycémie entre les deux régimes est égale à 0.06 g/L.
+
+Cette différence est-elle significative ?
+
+Pour savoir si cette différence est statistiquement significative, il faut de nouveau effectuer un test stastistique. Cependant, l’échantillon est trop petit pour utiliser un test paramétrique (test t de Student, test de Welch). Toutefois, il existe une alternative. On peut effectuer un test de Mann-Whitney (ou test de Wilcoxon).
+
+```{r, echo=TRUE, results='hide'}
+wilcox.test(groupe1b, groupe2b, var.equal=FALSE)
+```
+
+Interprétation du test : 
+
+H0 : les moyennes sont égales (hypothèse nulle) 
+
+H1 : les moyennes ne sont pas égales (hypothèse alternative) 
+
+H0 est rejetté et H1 est validé (p-value<0.05). Donc, les moyennes des deux sous-groupes ne sont pas égales.
+
+A partir du résultat du test statistique, on peut en conclure que la différence moyenne de glycémie entre les deux régimes des deux sous-groupes est significative.
+
+-   Que remarquez-vous en comparant les résultats obtenus pour des groupes de 100 ou 10 patients ?
+
+En comparant les résultats obtenus pour des groupes de 100 patients et de 10 patients, on constate que leurs résultats sont différents. Cependant, il faut prendre en compte que les données récoltés à partir de petits échantillons sont moins fiables que celles de grands échantillons car l'influence du hasard est accrue. Ainsi, les données sont susceptibles d'être moins précise.
